@@ -20,7 +20,16 @@ import (
 	"github.com/gardener/gardener-extension-provider-azure/pkg/apis/azure/helper"
 )
 
-func (w *workerDelegate) DeployMachineDependencies(ctx context.Context) error {
+func (w *workerDelegate) DeployMachineDependencies(_ context.Context) error {
+	return nil
+}
+
+func (w *workerDelegate) CleanupMachineDependencies(_ context.Context) error {
+	return nil
+}
+
+// PreReconcileHook implements genericactuator.WorkerDelegate.
+func (w *workerDelegate) PreReconcileHook(ctx context.Context) error {
 	infrastructureStatus, err := w.decodeAzureInfrastructureStatus()
 	if err != nil {
 		return err
@@ -42,7 +51,22 @@ func (w *workerDelegate) DeployMachineDependencies(ctx context.Context) error {
 	return nil
 }
 
-func (w *workerDelegate) CleanupMachineDependencies(ctx context.Context) error {
+// PostReconcileHook implements genericactuator.WorkerDelegate.
+func (w *workerDelegate) PostReconcileHook(ctx context.Context) error {
+	return w.cleanupMachineDependencies(ctx)
+}
+
+// PreDeleteHook implements genericactuator.WorkerDelegate.
+func (w *workerDelegate) PreDeleteHook(_ context.Context) error {
+	return nil
+}
+
+// PostDeleteHook implements genericactuator.WorkerDelegate.
+func (w *workerDelegate) PostDeleteHook(ctx context.Context) error {
+	return w.cleanupMachineDependencies(ctx)
+}
+
+func (w *workerDelegate) cleanupMachineDependencies(ctx context.Context) error {
 	infrastructureStatus, err := w.decodeAzureInfrastructureStatus()
 	if err != nil {
 		return err
@@ -61,25 +85,5 @@ func (w *workerDelegate) CleanupMachineDependencies(ctx context.Context) error {
 		return w.updateWorkerProviderStatus(ctx, workerProviderStatus)
 	}
 
-	return nil
-}
-
-// PreReconcileHook implements genericactuator.WorkerDelegate.
-func (w *workerDelegate) PreReconcileHook(_ context.Context) error {
-	return nil
-}
-
-// PostReconcileHook implements genericactuator.WorkerDelegate.
-func (w *workerDelegate) PostReconcileHook(_ context.Context) error {
-	return nil
-}
-
-// PreDeleteHook implements genericactuator.WorkerDelegate.
-func (w *workerDelegate) PreDeleteHook(_ context.Context) error {
-	return nil
-}
-
-// PostDeleteHook implements genericactuator.WorkerDelegate.
-func (w *workerDelegate) PostDeleteHook(_ context.Context) error {
 	return nil
 }
